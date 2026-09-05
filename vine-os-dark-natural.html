@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vine OS</title>
+<style>
+:root{
+  --accent:#69c8ff;
+  --text:#f4f7fa;
+  --muted:#97a4ad;
+  --line:rgba(255,255,255,.16);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;width:100%;overflow:hidden}
+body{
+  color:var(--text);
+  background:#06121b;
+  font:500 16px/1.2 Inter,Segoe UI,Roboto,Arial,sans-serif;
+}
+.wallpaper{
+  position:fixed;inset:0;z-index:-5;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.48) 44%,rgba(0,0,0,.64) 100%),
+    radial-gradient(circle at 80% 30%,rgba(18,92,128,.34),transparent 36%),
+    linear-gradient(135deg,#02070b 0%,#071d29 52%,#020a10 100%);
+}
+.wallpaper:after{
+  content:"";
+  position:absolute;inset:0;
+  background:
+    linear-gradient(150deg,transparent 0 58%,rgba(0,0,0,.42) 100%),
+    repeating-linear-gradient(135deg,transparent 0 80px,rgba(255,255,255,.018) 81px,transparent 82px);
+  mix-blend-mode:screen;
+}
+header{
+  position:fixed;left:0;right:0;top:0;height:82px;
+  display:flex;align-items:center;gap:42px;
+  padding:0 4.1%;
+  z-index:10;
+}
+.logo{font-weight:800;letter-spacing:.7px;font-size:20px;margin-right:4px}
+.logo span{color:var(--accent)}
+nav{display:flex;gap:42px;align-items:center;height:100%}
+nav button{
+  position:relative;border:0;background:none;color:#a9b5be;padding:0;
+  font:600 16px inherit;cursor:pointer
+}
+nav button.active{color:#fff}
+nav button.active:after{
+  content:"";position:absolute;left:0;right:0;bottom:-18px;margin:auto;
+  width:38px;height:2px;background:#fff
+}
+.actions{margin-left:auto;display:flex;align-items:center;gap:20px;color:#d7e1e6}
+.action{border:0;background:none;color:inherit;font-size:20px;cursor:pointer}
+.time{font-size:14px;font-weight:700;letter-spacing:.3px}
+
+.hero{
+  position:absolute;left:4.1%;top:120px;
+  width:min(690px,60vw);
+}
+.hero h1{
+  margin:0 0 16px;font-size:50px;line-height:1.04;
+  font-weight:800;letter-spacing:-1.9px
+}
+.meta{color:#a5b0b7;font-size:16px;margin-bottom:28px}
+.meta b{color:#61b9ee}
+.hero button{
+  height:54px;padding:0 28px;border-radius:28px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(26,30,33,.75);color:#fff;
+  font-size:16px;font-weight:700;backdrop-filter:blur(9px);
+  cursor:pointer;
+}
+.hero button:hover{background:rgba(255,255,255,.12)}
+
+.section{position:absolute;left:4.1%;right:0}
+.section h2{margin:0 0 12px;font-size:24px;letter-spacing:-.4px}
+.your{top:347px}
+.discover{bottom:8px}
+.row{display:flex;gap:18px;overflow:visible}
+.cover{
+  position:relative;flex:0 0 205px;height:205px;border-radius:18px;
+  overflow:hidden;background:#0b1319;border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 12px 35px rgba(0,0,0,.28);cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.cover:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.7);box-shadow:0 18px 42px rgba(0,0,0,.36)}
+.cover.selected{border:2px solid #fff}
+.art{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start}
+.art svg{position:absolute;inset:0;width:100%;height:100%}
+.caption{
+  position:absolute;left:0;right:0;bottom:0;padding:46px 13px 12px;
+  background:linear-gradient(transparent,rgba(0,0,0,.88));
+  font-size:14px;font-weight:700
+}
+.selected-card{
+  width:205px;height:205px;border-radius:18px;overflow:hidden;
+  border:2px solid #fff;box-shadow:0 14px 40px rgba(0,0,0,.35);
+  background:linear-gradient(135deg,#058fd2,#ff8cc3);
+  position:relative;cursor:pointer
+}
+.selected-card:before{content:"V";position:absolute;left:-20px;bottom:-70px;font-size:250px;font-weight:900;opacity:.16}
+.selected-card .vc{
+  position:absolute;inset:0;padding:15px;
+  display:flex;flex-direction:column;justify-content:space-between
+}
+.vc-title{font-weight:900;font-size:18px;text-transform:uppercase;line-height:.95;text-shadow:0 2px 4px #000}
+.vc-person{align-self:flex-end;font-size:66px;filter:drop-shadow(0 7px 5px rgba(0,0,0,.3))}
+.bottomFade{
+  position:fixed;left:0;right:0;bottom:0;height:145px;pointer-events:none;
+  background:linear-gradient(transparent,rgba(1,8,12,.9));
+}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:30
+}
+.modal.show{display:grid}
+.box{
+  width:min(560px,90vw);padding:26px;border-radius:18px;
+  background:rgba(8,14,19,.94);border:1px solid var(--line);
+  box-shadow:0 24px 70px rgba(0,0,0,.45)
+}
+.box h3{margin:0 0 12px;font-size:22px}
+.box p{color:var(--muted);margin:0 0 18px}
+.close{float:right;background:none;border:0;color:#fff;font-size:24px;cursor:pointer}
+@media(max-width:900px){
+  header{padding:0 22px;gap:24px}nav{gap:20px}nav button{font-size:14px}
+  .hero{left:22px;top:110px;width:70vw}.hero h1{font-size:42px}
+  .section{left:22px}.your{top:315px}
+  .cover,.selected-card{flex-basis:170px;width:170px;height:170px}
+}
+@media(max-width:650px){
+  .logo{display:none}nav button:nth-child(2),nav button:nth-child(3){display:none}
+  header{height:72px}.hero{top:92px}.hero h1{font-size:34px}.meta{font-size:14px}
+  .your{top:285px}.cover,.selected-card{flex-basis:145px;width:145px;height:145px}
+  .section h2{font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="wallpaper"></div>
+<header>
+  <div class="logo">VINE<span>OS</span></div>
+  <nav>
+    <button class="active" onclick="home()">Home</button>
+    <button onclick="library()">Game Library</button>
+    <button onclick="store()">Play Store</button>
+    <button onclick="search()">⌕ Search</button>
+  </nav>
+  <div class="actions">
+    <button class="action" aria-label="Settings" onclick="settings()">⚙</button>
+    <button class="action" aria-label="Pointer" onclick="alert('Pointer mode enabled')">⌁</button>
+    <button class="action profile" aria-label="Profile" onclick="profile()">C</button>
+    <div class="time" id="time">05:50 PM</div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Vine OS Game Hub</h1>
+    <div class="meta">CJ's Collection <b>•</b> Featured</div>
+    <button onclick="removeHome()">▣ &nbsp; Remove from Home</button>
+  </section>
+
+  <section class="section your">
+    <h2>Your Games</h2>
+    <div class="row">
+      <div class="selected-card" onclick="play('Vine City')">
+        <div class="vc">
+          <div class="vc-title">Vine<br>City</div>
+          <div class="vc-person">♟</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section discover">
+    <h2>Try Something New!</h2>
+    <div class="row">
+      <div class="cover" onclick="play('Night Shift')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <rect width="205" height="205" fill="#100c13"/>
+            <circle cx="148" cy="67" r="38" fill="#f24b55" opacity=".95"/>
+            <path d="M0 170 L70 135 110 160 150 118 205 150 V205 H0Z" fill="#2a1f2b"/>
+            <path d="M12 175 Q74 92 143 175" fill="none" stroke="#ff7c6e" stroke-width="5" opacity=".35"/>
+          </svg>
+          <div class="caption">Night Shift</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Street Drift')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <rect width="205" height="205" fill="#11191c"/>
+            <rect y="124" width="205" height="81" fill="#20262a"/>
+            <path d="M22 155 L76 125 142 130 185 162 172 177 43 177Z" fill="#d7dde0"/>
+            <path d="M55 145 L100 131 142 136 157 149Z" fill="#51b7e8"/>
+            <circle cx="65" cy="177" r="15" fill="#111"/>
+            <circle cx="151" cy="177" r="15" fill="#111"/>
+            <path d="M0 90 L205 30" stroke="#5cc7ff" stroke-width="3" opacity=".25"/>
+          </svg>
+          <div class="caption">Street Drift</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Aqua Rush')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <defs><linearGradient id="g1" x1="0" x2="1"><stop stop-color="#4be0ff"/><stop offset="1" stop-color="#1477bf"/></linearGradient></defs>
+            <rect width="205" height="205" fill="url(#g1)"/>
+            <path d="M0 128 Q45 93 93 127 T205 118 V205 H0Z" fill="#d9fbff" opacity=".34"/>
+            <path d="M0 151 Q45 121 92 154 T205 144" fill="none" stroke="#fff" stroke-width="4" opacity=".5"/>
+            <circle cx="152" cy="48" r="22" fill="#fff" opacity=".75"/>
+          </svg>
+          <div class="caption">Aqua Rush</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Tag Arena')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <rect width="205" height="205" fill="#4a91da"/>
+            <rect x="14" y="118" width="177" height="58" rx="8" fill="#f3b1dc"/>
+            <text x="103" y="67" text-anchor="middle" fill="#fff" font-size="28" font-weight="900" font-family="Arial">TAG</text>
+            <circle cx="58" cy="148" r="14" fill="#55d6a5"/><circle cx="103" cy="148" r="14" fill="#f0d34e"/><circle cx="148" cy="148" r="14" fill="#ff7784"/>
+          </svg>
+          <div class="caption">Tag Arena</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Violet Quest')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8f6bff"/><stop offset="1" stop-color="#2b1652"/></linearGradient></defs>
+            <rect width="205" height="205" fill="url(#g2)"/>
+            <path d="M104 39 l15 48 49 15-49 15-15 49-15-49-49-15 49-15Z" fill="#fff" opacity=".9"/>
+            <circle cx="160" cy="48" r="5" fill="#fff"/>
+            <circle cx="43" cy="81" r="4" fill="#fff" opacity=".75"/>
+          </svg>
+          <div class="caption">Violet Quest</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Redline')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <rect width="205" height="205" fill="#d43737"/>
+            <rect width="205" height="205" fill="#0d1115" opacity=".62"/>
+            <path d="M10 175 L55 90 87 175 132 70 192 175" fill="none" stroke="#ff5959" stroke-width="8"/>
+            <text x="103" y="45" text-anchor="middle" fill="#fff" font-size="25" font-weight="800" font-family="Arial">REDLINE</text>
+          </svg>
+          <div class="caption">Redline</div>
+        </div>
+      </div>
+
+      <div class="cover" onclick="play('Color World')">
+        <div class="art">
+          <svg viewBox="0 0 205 205" preserveAspectRatio="none">
+            <rect width="205" height="205" fill="#f3c843"/>
+            <circle cx="54" cy="60" r="29" fill="#37b76b"/><circle cx="136" cy="55" r="28" fill="#eb5b7d"/>
+            <rect x="24" y="112" width="55" height="55" rx="8" fill="#4ca7e8"/><rect x="112" y="108" width="60" height="60" rx="9" fill="#8757d9"/>
+            <text x="102" y="100" text-anchor="middle" fill="#161616" font-size="20" font-weight="800" font-family="Arial">COLOR</text>
+          </svg>
+          <div class="caption">Color World</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="bottomFade"></div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="box">
+    <button class="close" onclick="closeModal()">×</button>
+    <h3 id="modalTitle">Vine OS</h3>
+    <p id="modalText"></p>
+    <button class="hero button" style="position:static;width:auto;height:48px" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+function openModal(title,text){document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function play(name){openModal(name,'Game selected. Put your game URL into this card when you are ready to make it launch.')}
+function library(){openModal('Game Library','Your game collection will live here.')}
+function store(){openModal('Play Store','Add new games to Vine OS here.')}
+function search(){const q=prompt('Search games');if(q)openModal('Search',`Results for "${q}" can be connected to your game library.`)}
+function settings(){openModal('Settings','Vine OS settings.')}
+function profile(){openModal('Profile','CJ profile.')}
+function removeHome(){openModal('Home','The featured item can be removed from the home screen.')}
+function home(){window.scrollTo(0,0)}
+function clock(){const d=new Date();let h=d.getHours();const m=String(d.getMinutes()).padStart(2,'0');const ap=h>=12?'PM':'AM';h=h%12||12;document.getElementById('time').textContent=String(h).padStart(2,'0')+':'+m+' '+ap}
+clock();setInterval(clock,1000);
+</script>
+</body>
+</html>
